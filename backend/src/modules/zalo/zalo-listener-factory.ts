@@ -88,6 +88,7 @@ export function attachZaloListener(ctx: ListenerContext): void {
 
   listener.on('message', async (message: any) => {
     try {
+      logger.info(`[zalo:${accountId}] Raw message received: ${JSON.stringify(message)}`);
       // ThreadType in zca-js: 0 = User, 1 = Group
       const isGroup = message.type === 1;
       const senderUid = String(message.data?.uidFrom || '');
@@ -136,6 +137,19 @@ export function attachZaloListener(ctx: ListenerContext): void {
     } catch (err) {
       logger.error(`[zalo:${accountId}] Message handler error:`, err);
     }
+  });
+
+  // Additional debug listeners for other events
+  listener.on('group_event', (data: any) => {
+    logger.info(`[zalo:${accountId}] Group event:`, JSON.stringify(data));
+  });
+
+  listener.on('friend_event', (data: any) => {
+    logger.info(`[zalo:${accountId}] Friend event:`, JSON.stringify(data));
+  });
+
+  listener.on('event', (data: any) => {
+    logger.info(`[zalo:${accountId}] General Event:`, JSON.stringify(data));
   });
 
   listener.on('undo', async (data: any) => {

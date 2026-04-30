@@ -59,6 +59,30 @@ export async function handleIncomingMessage(
     const conversation = await findOrCreateConversation(msg, account.orgId, contactId);
 
     const sentAt = new Date(msg.timestamp);
+
+    // Prevent duplication for self-messages sent from GomZalo UI
+    if (msg.isSelf) {
+      const recentDuplicate = await prisma.message.findFirst({
+        where: {
+          conversationId: conversation.id,
+          senderType: 'self',
+          content: msg.content || '',
+          sentAt: { gte: new Date(Date.now() - 5000) }
+        }
+      });
+      
+      if (recentDuplicate) {
+        // Just update the real Zalo message ID if it's missing, don't create duplicate
+        if (msg.msgId && !recentDuplicate.zaloMsgId) {
+          await prisma.message.update({
+            where: { id: recentDuplicate.id },
+            data: { zaloMsgId: msg.msgId }
+          });
+        }
+        return null;
+      }
+    }
+
     const message = await prisma.message.create({
       data: {
         id: randomUUID(),
