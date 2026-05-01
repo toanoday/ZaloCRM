@@ -12,7 +12,7 @@ WORKDIR /app/backend
 COPY backend/package.json backend/package-lock.json ./
 RUN npm ci
 COPY backend/ ./
-RUN DATABASE_URL="dummy" DIRECT_URL="dummy" npx prisma generate
+RUN DATABASE_URL="postgresql://dummy:dummy@dummy:5432/dummy" DIRECT_URL="postgresql://dummy:dummy@dummy:5432/dummy" npx prisma generate
 RUN npm run build
 
 # ── Stage 3: Production image ────────────────────────────────────────────────
